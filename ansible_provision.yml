@@ -1,26 +1,19 @@
 ---
-- name: Install and prepare Ansible enviroment
-  hosts: all
-  become: true
+- name: Provision Bastion host
+  hosts: bastion
+  become: yes
+
   tasks:
-  
-  - name: Update and upgrade
-    ansible.builtin.apt:
-      update_cache: true
-      name:
-        - git
-        - sshpass
-        - net-tools
-        - joe
-        - mc
-      state: present
+    - name: Install required packages
+      apt:
+        name:
+          - git
+          - ansible
+        state: present
+        update_cache: yes
 
-  - name: Install Ansible collections
-    ansible.builtin.command:
-      cmd: ansible-galaxy collection install community.zabbix --force
-
-  - name: Cloning Git repository
-    ansible.builtin.git:
-      repo: 'https://github.com/sposdknl/zbx7-agent-ansible'
-      dest: /opt/repo
-...
+    - name: Clone Git repository
+      git:
+        repo: "https://github.com/sposdknl/ansible01-zbx-VanicekMatej"
+        dest: /opt/repo
+        version: main

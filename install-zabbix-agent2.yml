@@ -1,13 +1,44 @@
 ---
-- name: Install Zabbix Agent via Role
-  ansible.builtin.include_role:
-    name: community.zabbix.zabbix_agent
+- name: Install and configure Zabbix Agent2
+  hosts: all
+  become: yes
+
   vars:
-    zabbix_agent_version: 6.0
-    zabbix_agent2: false
-    zabbix_agent_hostname: "bastion"
-    zabbix_agent_listenip: "{{ ansible_host }}"
-    zabbix_agent_server: "192.168.42.2,172.16.0.0/12,10.10.42.0/30"
-    zabbix_agent_serveractive: 192.168.42.2
-    zabbix_agent_host_state: present
-...
+    zabbix_server: "{{ zabbix_server_ip }}"
+
+  tasks:
+
+    - name: Install dependencies
+      apt:
+        name:
+          - wget
+          - gnupg
+        state: present
+        update_cache: yes
+
+    - name: Add Zabbix repository package
+      apt:
+        deb: https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.0+ubuntu24.04_all.deb
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Zabbix Agent2
+      apt:
+        name: zabbix-agent2
+        state: present
+
+    - name: Configure Zabbix Agent2
+      template:
+        src: zabbix_agent2.conf.j2
+        dest: /etc/zabbix/zabbix_agent2.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Restart and enable Zabbix Agent2
+      systemd:
+        name: zabbix-agent2
+        state: restarted
+        enabled: yes
